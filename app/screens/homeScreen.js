@@ -46,18 +46,9 @@ const HomeScreen = () => {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <ImageBackground
-        source={require("")}
-        style={styles.background}
-        resizeMode="cover"
-      >
-        <View style={styles.contentContainer}>
-          <Text style={styles.title}>Welcome to ToolBoxWars!</Text>
-          <View style={styles.inputContainer}>
-            {/* Eventually have nav bar set up to navigate to main pages */}
-          </View>
-        </View>
-      </ImageBackground>
+      <View style={styles.contentContainer}>
+        <Text style={styles.title}>Welcome to ToolBoxWars! ! </Text>
+      </View>
     </KeyboardAvoidingView>
   );
 };
