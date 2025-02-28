@@ -17,11 +17,10 @@ import {
 import { getAuth, signInAnonymously } from "firebase/auth";
 import { AntDesign, FontAwesome } from "@expo/vector-icons";
 
-export default function Login({ navigation }) {
+export default function LoginScreen({ navigation }) {
   const [input, setInput] = useState("");
   const [password, setPassword] = useState("");
 
-  //  Email/Username Login
   const onHandleLogin = async () => {
     if (!input || !password) {
       Alert.alert(
@@ -45,45 +44,10 @@ export default function Login({ navigation }) {
     }
   };
 
-  // Google Sign-in
-  const handleGoogleLogin = async () => {
-    try {
-      await signInWithGoogle();
-      console.log("✅ Google Sign-in Successful");
-      navigation.navigate("HomeScreen");
-    } catch (error) {
-      Alert.alert("❌ Google Login Failed", error.message);
-    }
-  };
-
-  // Facebook Sign-in
-  const handleFacebookLogin = async () => {
-    try {
-      await signInWithFacebook();
-      console.log("✅ Facebook Sign-in Successful");
-      navigation.navigate("HomeScreen");
-    } catch (error) {
-      Alert.alert("❌ Facebook Login Failed", error.message);
-    }
-  };
-
-  // Anonymous Login
-  const handleAnonymousLogin = async () => {
-    try {
-      const auth = getAuth();
-      const result = await signInAnonymously(auth);
-      console.log("✅ Signed in anonymously");
-      navigation.navigate("HomeScreen", { userID: result.user.uid });
-    } catch (error) {
-      Alert.alert("❌ Anonymous Login Failed", error.message);
-    }
-  };
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome Back!</Text>
 
-      {/* Email/Username Input */}
       <TextInput
         style={styles.input}
         placeholder="Enter Email or Username"
@@ -91,42 +55,38 @@ export default function Login({ navigation }) {
         value={input}
         onChangeText={setInput}
       />
-
-      {/* Password Input */}
       <TextInput
         style={styles.input}
         placeholder="Enter Password"
-        secureTextEntry={true}
+        secureTextEntry
         value={password}
         onChangeText={setPassword}
       />
 
-      {/* Login Button */}
       <Button onPress={onHandleLogin} color="#444daf" title="Login" />
 
       <Text style={styles.orText}>OR</Text>
 
-      {/* Google Sign-in Button */}
-      <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin}>
+      <TouchableOpacity style={styles.googleButton} onPress={signInWithGoogle}>
         <AntDesign name="google" size={24} color="white" />
         <Text style={styles.buttonText}>Sign in with Google</Text>
       </TouchableOpacity>
 
-      {/* Facebook Sign-in Button */}
       <TouchableOpacity
         style={styles.facebookButton}
-        onPress={handleFacebookLogin}
+        onPress={signInWithFacebook}
       >
         <FontAwesome name="facebook" size={24} color="white" />
         <Text style={styles.buttonText}>Sign in with Facebook</Text>
       </TouchableOpacity>
 
-      {/* Anonymous Login */}
-      <TouchableOpacity style={styles.button} onPress={handleAnonymousLogin}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => signInAnonymously(getAuth())}
+      >
         <Text style={styles.buttonText}>Continue as Guest</Text>
       </TouchableOpacity>
 
-      {/* Sign Up Navigation */}
       <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
         <Text style={styles.signupText}>Don't have an account? Sign up</Text>
       </TouchableOpacity>
@@ -134,6 +94,7 @@ export default function Login({ navigation }) {
   );
 }
 
+/** Styles **/
 const styles = StyleSheet.create({
   container: {
     flex: 1,

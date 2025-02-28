@@ -1,132 +1,115 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   StyleSheet,
   View,
   Text,
-  TextInput,
+  ScrollView,
   TouchableOpacity,
-  ImageBackground,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
+  SafeAreaView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { getAuth, signInAnonymously } from "firebase/auth";
 
 const HomeScreen = () => {
-  const [name, setName] = useState("");
-  const [backgroundColor, setBackgroundColor] = useState("#090C08");
   const navigation = useNavigation();
-  const auth = getAuth();
-
-  const signInUser = async () => {
-    if (!name.trim()) {
-      Alert.alert("⚠️ Error", "Please enter a name before proceeding.");
-      return;
-    }
-
-    try {
-      const result = await signInAnonymously(auth);
-      navigation.replace("Chat", {
-        userID: result.user.uid,
-        name: name,
-        backgroundColor: backgroundColor,
-      });
-      Alert.alert("✅ Success", "Signed in as a guest!");
-    } catch (error) {
-      console.error("🔥 Error during anonymous sign-in:", error);
-      Alert.alert("❌ Sign-in Failed", "Please try again later.");
-    }
-  };
-
-  const colors = ["#090C08", "#474056", "#8A95A5", "#B9C6AE"];
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <View style={styles.contentContainer}>
-        <Text style={styles.title}>Welcome to ToolBoxWars! ! </Text>
+    <SafeAreaView style={styles.container}>
+      {/* 🔹 Navigation Bar */}
+      <View style={styles.navBar}>
+        {[
+          { name: "Home", screen: "Home" },
+          { name: "Blog", screen: "Blog" },
+          { name: "Showcase", screen: "Showcase" },
+          { name: "Merch", screen: "Merch" },
+          { name: "Profile", screen: "Profile" },
+        ].map((item) => (
+          <TouchableOpacity
+            key={item.screen}
+            onPress={() => navigation.navigate(item.screen)}
+          >
+            <Text style={styles.navItem}>{item.name}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
-    </KeyboardAvoidingView>
+
+      {/* 🔹 Main Content */}
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.title}>Welcome to ToolBoxWars!</Text>
+        <Text style={styles.subtitle}>
+          Your ultimate resource for everything Mech-related.
+        </Text>
+
+        {/* 🔹 Placeholder Sections for Future Content */}
+        {[
+          {
+            title: "Latest Blogs",
+            content: "Stay updated with the latest trends.",
+          },
+          {
+            title: "Showcase",
+            content: "Check out amazing builds from the community.",
+          },
+          { title: "Merch", content: "Dive deep into Merch for Mechanics." },
+        ].map((section, index) => (
+          <View key={index} style={styles.section}>
+            <Text style={styles.sectionTitle}>{section.title}</Text>
+            <Text style={styles.sectionContent}>{section.content}</Text>
+          </View>
+        ))}
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
+// 🔹 Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#121212",
   },
-  background: {
-    flex: 1,
-    justifyContent: "center",
+  navBar: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingVertical: 15,
+    backgroundColor: "#1F1F1F",
   },
-  contentContainer: {
-    flex: 1,
-    justifyContent: "flex-end",
-    alignItems: "center",
-    paddingBottom: "20%",
+  navItem: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingVertical: 30,
   },
   title: {
-    fontSize: 45,
-    fontWeight: "600",
+    fontSize: 28,
+    fontWeight: "bold",
     color: "#FFFFFF",
-    marginBottom: 40,
+    textAlign: "center",
   },
-  inputContainer: {
-    backgroundColor: "white",
+  subtitle: {
+    fontSize: 18,
+    color: "#BBBBBB",
+    textAlign: "center",
+    marginTop: 10,
+    marginBottom: 30,
+  },
+  section: {
+    backgroundColor: "#1F1F1F",
     padding: 20,
     borderRadius: 10,
-    width: "88%",
-    alignItems: "center",
-  },
-  textInput: {
-    width: "100%",
-    padding: 15,
-    borderWidth: 1,
-    borderColor: "#757083",
     marginBottom: 20,
-    fontSize: 16,
-    fontWeight: "300",
-    color: "#757083",
-    opacity: 0.8,
   },
-  colorText: {
-    fontSize: 16,
-    fontWeight: "300",
-    color: "#757083",
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#4CAF50",
     marginBottom: 10,
   },
-  colorContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "80%",
-    marginBottom: 20,
-  },
-  colorOption: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
-  selectedColor: {
-    borderWidth: 3,
-    borderColor: "#000",
-  },
-  button: {
-    backgroundColor: "#757083",
-    padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-    width: "100%",
-    marginVertical: 5,
-  },
-  loginButton: {
-    backgroundColor: "#4CAF50",
-  },
-  buttonText: {
-    color: "#FFFFFF",
+  sectionContent: {
     fontSize: 16,
-    fontWeight: "600",
+    color: "#BBBBBB",
   },
 });
 

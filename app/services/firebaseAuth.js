@@ -6,6 +6,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   FacebookAuthProvider,
+  onAuthStateChanged,
 } from "firebase/auth";
 import {
   collection,
@@ -16,30 +17,27 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
-import { auth, db } from "./firebase"; // Import Firebase instances
+import { auth, db } from "./firebase";
 
-// Helper function to check if a user exists in Firestore
+// Helper: Get User by UID
 const getUserByUID = async (uid) => {
   const userDoc = await getDoc(doc(db, "Users", uid));
   return userDoc.exists() ? userDoc.data() : null;
 };
 
-// Helper function to check if a username is already taken
+// Helper: Check if Username is Taken
 const isUsernameTaken = async (userName) => {
   const usersRef = collection(db, "Users");
   const q = query(usersRef, where("userName", "==", userName));
   const querySnapshot = await getDocs(q);
-  return !querySnapshot.empty; // Returns true if username is taken
+  return !querySnapshot.empty;
 };
 
-// Register a new user
+// Register New User
 export const registerUser = async (userName, email, password) => {
   try {
-    // Check if username already exists
     if (await isUsernameTaken(userName)) {
-      throw new Error(
-        "🛑 Username is already taken. Please choose another. 🛑"
-      );
+      throw new Error("🛑 Username is already taken. Please choose another.");
     }
 
     const userCredential = await createUserWithEmailAndPassword(
@@ -49,7 +47,6 @@ export const registerUser = async (userName, email, password) => {
     );
     const user = userCredential.user;
 
-    // Save user details in Firestore
     await setDoc(doc(db, "Users", user.uid), {
       userID: user.uid,
       userName,
@@ -57,7 +54,6 @@ export const registerUser = async (userName, email, password) => {
       createdAt: new Date(),
     });
 
-    // Update Firebase Auth Profile
     await updateProfile(user, { displayName: userName });
 
     return user;
@@ -89,14 +85,10 @@ export const loginUserWithUsername = async (userName, password) => {
     const q = query(usersRef, where("userName", "==", userName));
     const querySnapshot = await getDocs(q);
 
-    if (querySnapshot.empty) {
-      throw new Error("Username not found.");
-    }
+    if (querySnapshot.empty) throw new Error("Username not found.");
 
     const userData = querySnapshot.docs[0].data();
-    const email = userData.email;
-
-    return await loginUserWithEmail(email, password);
+    return await loginUserWithEmail(userData.email, password);
   } catch (error) {
     console.error("🔥 Error logging in with username:", error.message);
     throw new Error("Invalid username or password.");
@@ -113,66 +105,51 @@ export const logoutUser = async () => {
   }
 };
 
-// Google Authentication
+// Google Sign-In
 export const signInWithGoogle = async () => {
   try {
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
 
-    // Check if user exists in Firestore
-    const userDocRef = doc(db, "Users", user.uid);
-    const userDoc = await getDoc(userDocRef);
-
-    // If user doesn't exist create a new record
-    if (!userDoc.exists()) {
-      await setDoc(userDocRef, {
-        userID: user.uid,
-        userName: user.displayName || user.email.split("@")[0],
-        email: user.email,
-        profilePic: user.photoURL || "",
-        authProvider: "google",
-        createdAt: new Date(),
-      });
-    }
-
+    await saveUserToFirestore(user, "google");
     return user;
-
-    // Error handling
   } catch (error) {
-    console.error("🔥 Error with Google sign-in:", error.message);
+    console.error("🔥 Google Sign-in Error:", error.message);
     throw new Error("Google sign-in failed. Please try again.");
   }
 };
 
-// Facebook Authentication
+// Facebook Sign-In
 export const signInWithFacebook = async () => {
   try {
     const provider = new FacebookAuthProvider();
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
 
-    // Check if user exists in Firestore
-    const userDocRef = doc(db, "Users", user.uid);
-    const userDoc = await getDoc(userDocRef);
-
-    // If user doesn't exist create a new record
-    if (!userDoc.exists()) {
-      await setDoc(userDocRef, {
-        userID: user.uid,
-        userName: user.email.split("@")[0],
-        email: user.email,
-        profilePic: user.photoURL || "",
-        authProvider: "facebook",
-        createdAt: new Date(),
-      });
-    }
-
+    await saveUserToFirestore(user, "facebook");
     return user;
-
-    // Error handling
   } catch (error) {
-    console.error("🔥 Error with Facebook sign-in:", error.message);
+    console.error("🔥 Facebook Sign-in Error:", error.message);
     throw new Error("Facebook sign-in failed. Please try again.");
   }
 };
+
+// Helper: Save User to Firestore (Used by Google & Facebook Sign-In)
+const saveUserToFirestore = async (user, provider) => {
+  const userDocRef = doc(db, "Users", user.uid);
+  const userDoc = await getDoc(userDocRef);
+
+  if (!userDoc.exists()) {
+    await setDoc(userDocRef, {
+      userID: user.uid,
+      userName: user.displayName || user.email.split("@")[0],
+      email: user.email,
+      profilePic: user.photoURL || "",
+      authProvider: provider,
+      createdAt: new Date(),
+    });
+  }
+};
+
+export { auth, onAuthStateChanged };
